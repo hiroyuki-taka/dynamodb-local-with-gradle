@@ -1,0 +1,42 @@
+apply plugin: 'java'
+apply plugin: 'org.junit.platform.gradle.plugin'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://s3-ap-northeast-1.amazonaws.com/dynamodb-local-tokyo/release"
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
+    }
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile 'ch.qos.logback:logback-core:1.2.3'
+
+    testCompile "org.apiguardian:apiguardian-api:1.0.0"
+    testCompile "org.junit.platform:junit-platform-launcher:1.0.1"
+    testCompile "org.junit.jupiter:junit-jupiter-engine:5.0.1"
+    testCompile "org.junit.jupiter:junit-jupiter-params:5.0.1"
+
+    testCompile 'com.amazonaws:DynamoDBLocal:[1.11,2.0)'
+}
+
+task copyNativeDeps(type: Copy) {
+    from (configurations.testCompile) {
+        include "*.dylib"
+        include "*.so"
+        include "*.dll"
+    }
+    into "build/libs"
+}
+
+test.dependsOn copyNativeDeps
