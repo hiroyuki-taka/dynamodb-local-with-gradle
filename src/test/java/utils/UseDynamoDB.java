@@ -17,7 +17,7 @@ public interface UseDynamoDB {
     Map<String, Object> __objectMap = new HashMap<>();
 
     @BeforeEach
-    default void __before() {
+    default void UseDynamoDB__before() {
         System.setProperty(SQLite.LIBRARY_PATH_PROPERTY, "build/libs");
 
         AmazonDynamoDB dynamoDB = DynamoDBEmbedded.create().amazonDynamoDB();
@@ -25,7 +25,7 @@ public interface UseDynamoDB {
     }
 
     @AfterEach
-    default void __after() {
+    default void UseDynamoDB__after() {
         AmazonDynamoDB db = currentDBInstance();
         if (db != null) {
             db.shutdown();
