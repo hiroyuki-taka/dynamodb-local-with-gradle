@@ -33,7 +33,7 @@ public interface DynamoDBLoadData extends UseDynamoDB {
                 LIST a = m.getAnnotation(listClass);
                 if (a != null) {
                     Method value = listClass.getMethod("value");
-                    return Arrays.asList((ITEM[])value.invoke(a));
+                    return Arrays.asList((ITEM[]) value.invoke(a));
                 }
             }
 
