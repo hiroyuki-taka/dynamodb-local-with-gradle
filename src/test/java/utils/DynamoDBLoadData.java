@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Repeatable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -23,13 +24,19 @@ public interface DynamoDBLoadData extends UseDynamoDB {
 
     Logger logger = LoggerFactory.getLogger(DynamoDBLoadData.class);
 
-    private <LIST extends Annotation, ITEM extends Annotation> List<ITEM> getAnnotations(Method m, Class<LIST> l, Class<ITEM> i) {
+    @SuppressWarnings("unchecked")
+    private <LIST extends Annotation, ITEM extends Annotation> List<ITEM> getAnnotations(Method m, Class<ITEM> i) {
         try {
-            LIST listAnnotation = m.getAnnotation(l);
-            if (listAnnotation != null) {
-                Method values = l.getMethod("value");
-                return Arrays.asList((ITEM[])values.invoke(listAnnotation));
+            Repeatable repeatable = i.getAnnotation(Repeatable.class);
+            if (repeatable != null) {
+                Class<LIST> listClass = (Class<LIST>) repeatable.value();
+                LIST a = m.getAnnotation(listClass);
+                if (a != null) {
+                    Method value = listClass.getMethod("value");
+                    return Arrays.asList((ITEM[])value.invoke(a));
+                }
             }
+
             ITEM itemAnnotation = m.getAnnotation(i);
             if (itemAnnotation != null) {
                 return Collections.singletonList(itemAnnotation);
@@ -46,7 +53,7 @@ public interface DynamoDBLoadData extends UseDynamoDB {
 
             AmazonDynamoDB client = currentDBInstance();
 
-            for (CreateTable t : getAnnotations(m, CreateTableHolder.class, CreateTable.class)) {
+            for (CreateTable t : getAnnotations(m, CreateTable.class)) {
                 String tableName = t.tableName();
                 List<AttributeDefinition> attributeDefinitions = Lists.partition(Arrays.asList(t.attributeDefinitions()), 2).stream()
                         .map(params -> new AttributeDefinition(params.get(0), params.get(1)))
@@ -63,10 +70,10 @@ public interface DynamoDBLoadData extends UseDynamoDB {
                         .withProvisionedThroughput(new ProvisionedThroughput(1L, 1L));
 
                 client.createTable(request);
-                logger.debug("create dynamodb table: {}", tableName);
+                logger.debug("create dynamoDB table: {}", tableName);
             }
 
-            for (ImportData d : getAnnotations(m, ImportDataHolder.class, ImportData.class)) {
+            for (ImportData d : getAnnotations(m, ImportData.class)) {
                 logger.debug("load data to {}, {}", d.tableName(), d.fileName());
 
                 // TODO:
