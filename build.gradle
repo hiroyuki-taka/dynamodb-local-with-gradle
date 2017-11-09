@@ -30,6 +30,7 @@ dependencies {
     testCompile "org.junit.platform:junit-platform-launcher:1.0.1"
     testCompile "org.junit.jupiter:junit-jupiter-engine:5.0.1"
     testCompile "org.junit.jupiter:junit-jupiter-params:5.0.1"
+    testCompile 'com.google.guava:guava:23.3-jre'
 
     testCompile 'com.amazonaws:DynamoDBLocal:[1.11,2.0)'
 }
